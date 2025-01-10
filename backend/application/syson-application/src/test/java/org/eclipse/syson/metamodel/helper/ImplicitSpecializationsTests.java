@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 Obeo.
+ * Copyright (c) 2024, 2025 Obeo.
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.sirius.components.collaborative.diagrams.dto.DiagramEventInput;
 import org.eclipse.sirius.components.collaborative.diagrams.dto.DiagramRefreshedEventPayload;
 import org.eclipse.sirius.components.core.api.IObjectService;
@@ -28,14 +29,21 @@ import org.eclipse.syson.AbstractIntegrationTests;
 import org.eclipse.syson.application.controller.editingContext.checkers.ISemanticChecker;
 import org.eclipse.syson.application.controller.editingContext.checkers.SemanticCheckerService;
 import org.eclipse.syson.application.data.SysMLv2Identifiers;
+import org.eclipse.syson.services.ElementInitializerSwitch;
 import org.eclipse.syson.services.SemanticRunnableFactory;
+import org.eclipse.syson.services.UtilService;
 import org.eclipse.syson.services.diagrams.api.IGivenDiagramSubscription;
 import org.eclipse.syson.sysml.AcceptActionUsage;
 import org.eclipse.syson.sysml.Element;
+import org.eclipse.syson.sysml.ItemUsage;
 import org.eclipse.syson.sysml.PartDefinition;
 import org.eclipse.syson.sysml.PartUsage;
+import org.eclipse.syson.sysml.RequirementUsage;
+import org.eclipse.syson.sysml.StakeholderMembership;
 import org.eclipse.syson.sysml.SysmlFactory;
+import org.eclipse.syson.sysml.SysmlPackage;
 import org.eclipse.syson.sysml.helper.EMFUtils;
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -162,6 +170,39 @@ public class ImplicitSpecializationsTests extends AbstractIntegrationTests {
             AcceptActionUsage acceptActionUsage = optAcceptActionUsage.get();
 
             assertTrue(acceptActionUsage.specializesFromLibrary("Actions::acceptActions"));
+        };
+
+        this.semanticCheckerService.checkEditingContext(semanticChecker, this.verifier);
+    }
+
+    @DisplayName("Stakeholder PartUsage implictly specializes 'Requirements::RequirementCheck::stakeholders'")
+    @Sql(scripts = { "/scripts/syson-test-database.sql" }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = { "/scripts/cleanup.sql" }, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED))
+    @Test
+    @Ignore
+    public void testImplicitSpecializationOnStakeholderPartUsage() {
+        final ISemanticChecker semanticChecker = (editingContext) -> {
+            final Element semanticRootElement = this.objectService.getObject(editingContext, SysMLv2Identifiers.GENERAL_VIEW_WITH_TOP_NODES_DIAGRAM_OBJECT).filter(Element.class::isInstance)
+                    .map(Element.class::cast).orElseGet(() -> Assertions.fail("Could not find the expected root semantic object."));
+            final RequirementUsage requirementUsage = EMFUtils.allContainedObjectOfType(semanticRootElement, RequirementUsage.class)
+                    .filter(element -> Objects.equals(element.getName(), "requirement")).findFirst().orElseGet(() -> Assertions.fail("Could not find the expected RequirementUsage object."));
+            final ItemUsage itemUsage = EMFUtils.allContainedObjectOfType(semanticRootElement, ItemUsage.class)
+                    .filter(element -> Objects.equals(element.getName(), "item")).findFirst().orElseGet(() -> Assertions.fail("Could not find the expected ItemUsage object."));
+
+            final StakeholderMembership stakeholderMembership = SysmlPackage.eINSTANCE.getSysmlFactory().createStakeholderMembership();
+            requirementUsage.getOwnedRelationship().add(stakeholderMembership);
+            final PartUsage stakeholderPartUsage = SysmlFactory.eINSTANCE.createPartUsage();
+            stakeholderMembership.getOwnedRelatedElement().add(stakeholderPartUsage);
+
+            final var elementInitializerSwitch = new ElementInitializerSwitch();
+            elementInitializerSwitch.doSwitch(stakeholderPartUsage);
+
+            new UtilService().setSubsetting(stakeholderPartUsage, itemUsage);
+
+            // TODO: these all fail, not sure why yet?
+            assertTrue(stakeholderPartUsage.specializesFromLibrary("Parts::parts"));
+            assertTrue(stakeholderPartUsage.specializesFromLibrary("Parts::Part"));
+            assertTrue(stakeholderPartUsage.specializesFromLibrary("Requirements::RequirementCheck::stakeholders"));
         };
 
         this.semanticCheckerService.checkEditingContext(semanticChecker, this.verifier);
