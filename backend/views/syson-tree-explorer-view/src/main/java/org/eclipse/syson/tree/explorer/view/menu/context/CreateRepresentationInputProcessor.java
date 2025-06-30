@@ -25,7 +25,7 @@ import org.eclipse.sirius.components.core.api.IEditingContextPersistenceService;
 import org.eclipse.sirius.components.core.api.IInput;
 import org.eclipse.sirius.components.core.api.IObjectSearchService;
 import org.eclipse.sirius.web.application.editingcontext.EditingContext;
-import org.eclipse.syson.application.services.GetIntermediateContainerCreationSwitch;
+import org.eclipse.syson.services.GetIntermediateContainerCreationSwitch;
 import org.eclipse.syson.sysml.Element;
 import org.eclipse.syson.sysml.Relationship;
 import org.eclipse.syson.sysml.SysmlFactory;

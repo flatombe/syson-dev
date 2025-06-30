@@ -1,0 +1,23 @@
+extend type Mutation {
+  duplicateSysMLObject(input: DuplicateSysMLObjectInput!): DuplicateSysMLObjectPayload!
+}
+
+input DuplicateSysMLObjectInput {
+  id: ID!
+  editingContextId: ID!
+  objectId: ID!
+  ownerId: ID!
+  membershipTypeName: String!
+  duplicateContents: Boolean!
+  copyOutgoingReferences: Boolean!
+  updateIncomingReferences: Boolean!
+}
+
+type DuplicateSysMLObjectSuccessPayload {
+  id: ID!
+  duplicatedObject: Object!
+  createdMembership: Object
+  messages: [Message]!
+}
+
+union DuplicateSysMLObjectPayload = ErrorPayload | DuplicateSysMLObjectSuccessPayload

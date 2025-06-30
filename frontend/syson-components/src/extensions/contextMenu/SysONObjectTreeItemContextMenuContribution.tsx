@@ -12,15 +12,16 @@
  *******************************************************************************/
 import { Selection, useSelection } from '@eclipse-sirius/sirius-components-core';
 import { TreeItemContextMenuComponentProps } from '@eclipse-sirius/sirius-components-trees';
+import { NewObjectModal, NewRepresentationModal } from '@eclipse-sirius/sirius-web-application';
 import AddIcon from '@mui/icons-material/Add';
+import AddToPhotosIcon from '@mui/icons-material/AddToPhotos';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import { Fragment, forwardRef, useState } from 'react';
-import { NewObjectModal } from '@eclipse-sirius/sirius-web-application';
-import { NewRepresentationModal } from '@eclipse-sirius/sirius-web-application';
+import { DuplicateSysMLObjectModal } from '../duplicate-object/DuplicateSysMLObjectModal';
 
-type Modal = 'CreateNewObject' | 'CreateNewRepresentation';
+type Modal = 'CreateNewObject' | 'CreateNewRepresentation' | 'DuplicateSysMLObject';
 
 export const SysONObjectTreeItemContextMenuContribution = forwardRef(
   (
@@ -59,6 +60,16 @@ export const SysONObjectTreeItemContextMenuContribution = forwardRef(
           onClose={onClose}
         />
       );
+    } else if (modal === 'DuplicateSysMLObject') {
+      modalElement = (
+        <DuplicateSysMLObjectModal
+          editingContextId={editingContextId}
+          objectToDuplicateId={item.id}
+          objectToDuplicateKind={item.kind}
+          onObjectDuplicated={onObjectCreated}
+          onClose={onClose}
+        />
+      );
     }
 
     let menuItems: JSX.Element[] = [];
@@ -88,6 +99,19 @@ export const SysONObjectTreeItemContextMenuContribution = forwardRef(
             <AddIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText primary="New representation" />
+        </MenuItem>
+      );
+      menuItems.push(
+        <MenuItem
+          key="duplicate-sysml-object"
+          onClick={() => setModal('DuplicateSysMLObject')}
+          data-testid="duplicate-sysml-object"
+          disabled={readOnly}
+          aria-disabled>
+          <ListItemIcon>
+            <AddToPhotosIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Duplicate object" />
         </MenuItem>
       );
     }

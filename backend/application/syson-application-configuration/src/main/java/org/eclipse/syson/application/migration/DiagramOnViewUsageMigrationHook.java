@@ -30,7 +30,7 @@ import org.eclipse.sirius.web.domain.boundedcontexts.representationdata.Represen
 import org.eclipse.sirius.web.domain.boundedcontexts.representationdata.RepresentationMetadata;
 import org.eclipse.sirius.web.domain.boundedcontexts.representationdata.repositories.IRepresentationContentRepository;
 import org.eclipse.sirius.web.domain.boundedcontexts.representationdata.services.api.IRepresentationMetadataUpdateService;
-import org.eclipse.syson.application.services.GetIntermediateContainerCreationSwitch;
+import org.eclipse.syson.services.GetIntermediateContainerCreationSwitch;
 import org.eclipse.syson.sysml.Element;
 import org.eclipse.syson.sysml.Relationship;
 import org.eclipse.syson.sysml.SysmlFactory;
